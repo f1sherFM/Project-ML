@@ -2,15 +2,28 @@ from flask import Flask, render_template, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from redis import Redis
 import os
-from config import Config  # Import the Config class
+from config import Config1  # Import the Config class
 from forms import SurveyForm
-from models import db, SurveyResponse # Import the database instance
+
+
+db = SQLAlchemy()  # Создаем экземпляр SQLAlchemy, связанный с Flask-приложением
+
+class SurveyResponse(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    question1 = db.Column(db.String(255))
+    question2 = db.Column(db.Integer)  # Пример числового ответа
+    question3 = db.Column(db.Text)  # Пример текстового ответа
+    #  age = db.Column(db.Integer)
+    #  gender = db.Column(db.String(50))
+
+    def __repr__(self):
+        return f'<SurveyResponse {self.id}>'
 
 app = Flask(__name__)
-app.config.from_object(Config)  # Load configuration from Config class
+app.config.from_object(Config1)  # Load configuration from Config class
 
 # Initialize the database
-db.init_app(app) # Initialize the database with the Flask app
+db.init_app(app)  # Initialize the database with the Flask app
 with app.app_context():
     db.create_all()  # Create database tables if they don't exist
 
