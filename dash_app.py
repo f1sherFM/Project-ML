@@ -3,33 +3,34 @@ import dash_core_components as dcc
 import dash_html_components as html
 import plotly.express as px
 import pandas as pd
-from flask import Flask
-from flask import current_app as flask_app  # Import current_app
-from models import db, SurveyResponse
-from sqlalchemy import create_engine
+from flask import Flask, current_app
+from app import app, db, SurveyResponse  # Import the Flask app
+#from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from config import Config  # Import Config class
-
-# Initialize Dash with the Flask app
-dash_app = dash.Dash(__name__, server=flask_app, url_base_pathname='/dash/')  # Mount Dash at /dash/
+from config import Config1
 
 # Configuration for database connection
-config = Config()
-engine = create_engine(config.SQLALCHEMY_DATABASE_URI)
-Session = sessionmaker(bind=engine)
+config = Config1()
+#engine = create_engine(config.SQLALCHEMY_DATABASE_URI)
+#Session = sessionmaker(bind=db.engine)
 
-dash_app.layout = html.Div(children=[
-    html.H1(children='Survey Results Dashboard'),
+# Initialize Dash with the Flask app - use the app context
+with app.app_context():
+    dash_app = dash.Dash(__name__, server=app, url_base_pathname='/dash/')  # Pass the Flask app
+    Session = sessionmaker(bind=db.engine) # Now Session can be created
+    dash_app.layout = html.Div(children=[
+        html.H1(children='Survey Results Dashboard'),
 
-    dcc.Graph(
-        id='example-graph',
-        figure={}  # Initialize as an empty dictionary
-    )
-])
+        dcc.Graph(
+            id='example-graph',
+            figure={}
+        )
+    ])
+
 
 @dash_app.callback(
     dash.Output('example-graph', 'figure'),
-    dash.Input('example-graph', 'clickData'))  # Added Input for callback
+    dash.Input('example-graph', 'clickData'))
 def update_graph(clickData):
     # Create a session
     session = Session()
@@ -44,4 +45,4 @@ def update_graph(clickData):
 
         return fig
     finally:
-        session.close()  # Ensure the session is closed
+        session.close()
